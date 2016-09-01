@@ -75,6 +75,16 @@ namespace pcl
         void (sig_cb_real_sense_point_cloud_rgba)
           (const pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr&);
 
+       typedef
+         void (sig_cb_real_sense_depth_image)
+         (const uint16_t*);
+
+      typedef
+         void (sig_cb_real_sense_rgb_image)
+         (const uint8_t*);
+
+
+
       /** A descriptor for capturing mode.
         *
         * Consists of framerate and resolutions of depth and color streams.
@@ -238,6 +248,10 @@ namespace pcl
       boost::signals2::signal<sig_cb_real_sense_point_cloud>* point_cloud_signal_;
       boost::signals2::signal<sig_cb_real_sense_point_cloud_rgba>* point_cloud_rgba_signal_;
 
+      boost::signals2::signal<sig_cb_real_sense_depth_image>* depth_image_signal_;
+
+      boost::signals2::signal<sig_cb_real_sense_rgb_image>* rgb_image_signal_;
+
       boost::shared_ptr<pcl::io::real_sense::RealSenseDevice> device_;
 
       bool is_running_;
@@ -264,6 +278,14 @@ namespace pcl
       /// Indicates whether there are subscribers for PointXYZRGBA signal,
       /// computed and stored on start()
       bool need_xyzrgba_;
+
+      /// Indicates whether there are subscribers for depth_image signal, computed
+      /// and stored on start()
+      bool need_depth_image_;
+
+      /// Indicates whether there are subscribers for rgb_image signal,
+      /// computed and stored on start()
+      bool need_rgb_image_;
 
       EventFrequency frequency_;
       mutable boost::mutex fps_mutex_;

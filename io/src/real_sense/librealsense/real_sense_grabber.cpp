@@ -67,6 +67,9 @@ pcl::RealSenseGrabber::RealSenseGrabber (const std::string& device_id, const Mod
 
   point_cloud_signal_ = createSignal<sig_cb_real_sense_point_cloud> ();
   point_cloud_rgba_signal_ = createSignal<sig_cb_real_sense_point_cloud_rgba> ();
+
+  depth_image_signal_    = createSignal<sig_cb_real_sense_depth_image> ();
+  rgb_image_signal_ = createSignal<sig_cb_real_sense_rgb_image> ();
 }
 
 void
@@ -76,6 +79,10 @@ pcl::RealSenseGrabber::start ()
   {
     need_xyz_ = num_slots<sig_cb_real_sense_point_cloud> () > 0;
     need_xyzrgba_ = num_slots<sig_cb_real_sense_point_cloud_rgba> () > 0;
+
+    need_depth_image_ = num_slots<sig_cb_real_sense_depth_image> () > 0;
+    need_rgb_image_   = num_slots<sig_cb_real_sense_rgb_image> () > 0;
+
     if (need_xyz_ || need_xyzrgba_)
     {
       if (temporal_filtering_type_ != RealSense_None)
@@ -168,8 +175,8 @@ pcl::RealSenseGrabber::run ()
 {
   rs::device* device = device_->getDevice ();
   device->start ();
-  int depth_width = mode_selected_.depth_width, depth_height = mode_selected_.depth_height, 
-      depth_size = depth_width * depth_height, color_width = mode_selected_.color_width, 
+  int depth_width = mode_selected_.depth_width, depth_height = mode_selected_.depth_height,
+      depth_size = depth_width * depth_height, color_width = mode_selected_.color_width,
       color_height = mode_selected_.color_height, color_size = color_width * color_height * 3;
   ///Buffer to store depth data
   std::vector<uint16_t> depth_data;
@@ -184,6 +191,17 @@ pcl::RealSenseGrabber::run ()
     // Retrieve our images
     const uint16_t * depth_image = (const uint16_t *)device->get_frame_data (rs::stream::depth);
     const uint8_t * color_image = (const uint8_t *)device->get_frame_data (rs::stream::color);
+
+    if(need_depth_image_)
+    {
+        depth_image_signal_->operator()(depth_image);
+    }
+
+    if(need_rgb_image_)
+    {
+        rgb_image_signal_->operator()(color_image);
+    }
+
     // Retrieve camera parameters for mapping between depth and color
     rs::intrinsics depth_intrin = device->get_stream_intrinsics (rs::stream::depth);
     rs::intrinsics color_intrin = device->get_stream_intrinsics (rs::stream::color);
